@@ -1,5 +1,9 @@
 # Parallel programming in C notes
 
+This is the code repository for the programming exam part of parallel computing, of the 9th semester in the ECE department of University of Patras. 
+
+The code for pi's approximation is a refactored and extended version of [this](https://github.com/Defcon27/Parallel-Computing-in-C-using-OpenMP/blob/master/pi_estimation_integration.c) repository in order to be able to use different steps, threads and with some minor changes to variable types and optimizations, whereas the e and ln(x) approximations were original code (although Defcon27's repository has excelent solutions to those as well).
+
 ## Compilation
 Remember to <b>link</b> used libraries when compiling:
 ```sh
