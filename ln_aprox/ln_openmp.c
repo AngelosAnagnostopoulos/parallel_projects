@@ -16,7 +16,7 @@ int main(int argc, char **argv){
     time = omp_get_wtime();
     //Number of threads to use for parallel region
     omp_set_num_threads(threads);
-	#pragma omp parallel for shared(ln, part_sol) reduction(+: ln)
+	#pragma omp parallel for shared(part_sol) reduction(+: ln)
     for (i = 1; i <= steps; i++)
     {
         part_sol = pow(-1.0, (i+1)) * (pow((x-1),i) / i);
