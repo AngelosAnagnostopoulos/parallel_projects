@@ -9,12 +9,13 @@ int main(int argc, char **argv){
     float time;
     int i, steps, threads;
     
-    steps = atoi(argv[1]);
+    steps = atoi(argv[1]) * 10000;
     threads = atoi(argv[2]);
     time = omp_get_wtime();
     dx = 1.0 / (long double)steps;
     x = dx;
 
+    omp_set_num_threads(threads);
     #pragma omp parallel for schedule(dynamic) reduction(+: area) private(x, y, i, dx)
     for (i = 1; i < steps; i++)
     {

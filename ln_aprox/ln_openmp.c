@@ -10,7 +10,7 @@ int main(int argc, char **argv){
     int i, steps, threads;
 
     x = atof(argv[1]);
-    steps = atoi(argv[2]);
+    steps = atoi(argv[2]) * 10000;
     threads = atoi(argv[3]);
 
     time = omp_get_wtime();
