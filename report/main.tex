@@ -1,0 +1,156 @@
+\documentclass{article}
+
+\input{structure.tex} % Include the file specifying the document structure and custom commands
+
+%----------------------------------------------------------------------------------------
+%	ASSIGNMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{Parallel computing, Programming assignment} % Title of the assignment
+\author{Angelos Anagnostopoulos\\ \texttt{up1066593@upnet.gr}} % Author name and email address
+\date{University of Patras --- \today} % University, school and/or department name(s) and a date
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section*{Introduction} % Unnumbered section
+
+The point of this excercise was to use parallelization libraries in the C programming language in order to calculate various numbers with use of different algorithms and mathematical formulae. 
+Code was written in both OpenMP and the MPI libraries, both wrappers that deal with threads and inter-process messages. 
+They are very easy to use and replace the mind-bending complexity of Posix threads, and thus were embraced by the C community. 
+
+For this assignment, we have to calculate the constants e and $ \pi $, as well as the natural logarithm $ \ln $(x) of a small number x between 0 and 2.
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 1: Approximating pi
+%----------------------------------------------------------------------------------------
+
+\section{Approximating pi} % Numbered section
+
+Throughout the years, multiple methods of approximating $ \pi $ have been proposed, each with its own pros and cons.
+For this assignment we were left free to choose the implementation details by ourselves,
+which gives us room to navigate into different mathematical formulae and write some interesting code.
+
+\subsection{OpenMP implementation}
+
+By integrating $ \sqrt{1-x^2}	$ from -1 to 1 we can calculate the value of pi wiht great accuracy.
+This stems from the fact that the integral converges to $ \frac{\pi}{2} $. We therefore need to arithmetically calculate the integral:
+\begin{equation}
+	I = \int_{-1}^{1} \sqrt{1-x^2} \; \text{d}x = \frac{\pi}{2}.
+\end{equation}
+
+Arithmetic integration is done by using a tiny step dx in order to divide the integral up into very small areas that can be calculated and summed up. We divide our function f(x) into multiple dx segments and multiply the function value with our current dx segment, adding the result to a "master" sum.
+This is essentialy the definition of a definite integral. The smaller we make dx, the better the accuracy of the method. As it turns out, even relatively small values of 10.000, are effective in calculating multiple decimal points. As we will see later on, this is not the case with our other method of choice. The complete source code can be seen on the next page.
+
+In each itteration of the program, for each small dx we add a partial area value to the result. At the end we display the final result to the console. With a standard integer we can reach about 2 million itterations, which is more than enough to calculate $ \pi $ with great accuracy.
+
+\newpage
+\lstinputlisting[language=C]{"/home/angelos/Desktop/parallel_projects/pi_aprox/pi_integral_openmp.c"}
+
+%------------------------------------------------
+
+\subsection{MPI implementation}
+
+The MPI library is a bit more complicated syntactically, but ultimatelly achieves the same results by allowing different threads and processes to communicate with each other and automatically dividing the workload to them.
+For this method, we chose to implement a Monte Carlo method. By using randomness over many itterations, we can reach an estimation about the value of $ \pi $ which is close to the real thing!
+
+This of course requires creation of a random number in each itteration and is very time consuming but yeilds promising results for large numbers of itterations.
+For our needs, we went with 10.000.000. Unfortunately this number does not give us accurate results, so a workaround has been implemented.
+By storing calculated values in a file and taking their median, we can come a lot closer to the true value of $ \pi $ than with a single use of the method.
+
+Our method is based on the unit circle, and the fact that the area under one quarter of the unit circle is equal to $ \frac{\pi}{4} $. By taking a lot of random points and seeing if they belong inside the unit circle or not, we can come up with a clever trick to calculate an approximation of pi as the number of "hits" divided by the total number of points.
+Let the total number of points be N and the points inside the unit circle M. Then:
+\begin{align}
+	\frac{M}{N} = \frac{\pi}{4},\\
+	\pi = \frac{4 * M}{N}
+\end{align}
+After writting the results to the file, a small python script is called to calculate the median and print the output to the screen. Below is the source code for the MPI implementation as well as the python script:
+\newpage
+\begin{center}
+	Approximating $ \pi $ with MPI source code
+\end{center}
+\lstinputlisting[language=C]{"/home/angelos/Desktop/parallel_projects/pi_aprox/pi_montecarlo_MPI.c"}
+\newpage
+\begin{center}
+	Python script to find median of multiple approximations
+\end{center}
+\lstinputlisting[language=Python]{"/home/angelos/Desktop/parallel_projects/pi_aprox/sumfile.py"}
+
+In order to automate the whole process, a shell script was created. To run it, simply execute:
+\begin{lstlisting}[language=bash]
+	$ ./pi_aprox/run.sh
+\end{lstlisting}
+
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 2: Approximating ln(x)
+%----------------------------------------------------------------------------------------
+
+\section{Approximating ln(x)}
+
+In order to approximate the value of ln(x), we can use a mathematical formula derived by the Taylor series.
+That will give us a sum that we shall divide upon our threads to calculate partially, and then add their results to a master-sum.
+The formula in question is:
+\begin{equation}
+	ln(x) = \sum_{i=1}^{n}(-1)^{i+1}[\frac{(x-1)^i}{i}]
+\end{equation}
+\newline
+\begin{center}
+	Natural logarithm ln(x) approximation source code:
+\end{center}
+
+\lstinputlisting[language=C]{"/home/angelos/Desktop/parallel_projects/ln_aprox/ln_openmp.c"}
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 3: Approximating e
+%----------------------------------------------------------------------------------------
+
+\section{Approximating e}
+Euler's constant can be calculated from the McLauren series:
+\begin{equation}
+	e = \sum_{n=0}^{\infty}\frac{1}{n!}
+\end{equation}
+We shall create an algorithm that parallelizes this, exactly as we did with ln(x) in the above section.
+This algorithm will need to calculate the factorial of each itteration and add the partial sum to our approximation of e.
+\begin{center}
+	Euler's constant (e) approximation source code:
+\end{center}
+\lstinputlisting[language=C]{"/home/angelos/Desktop/parallel_projects/euler_aprox/euler_openmp.c"}
+
+
+%----------------------------------------------------------------------------------------
+\newpage
+\section*{Running the code} % Unnumbered section
+
+Shell scripts were created in order to automate file compilation and execution. In order to compile our .c files,simply run:
+\begin{lstlisting}[language=bash]
+	$ ./compile
+\end{lstlisting}
+
+The binary files created, are placed in a new directory called /bin and can be executed with the appropriate command. 
+Please note that all code is written with argv in mind for the required steps and the threads to be used. Steps are multiplied by 10.000 for user ease, therefore execute the output with:
+\begin{lstlisting}[language=bash]
+	./bin/<binary> <steps> <threads_number>
+\end{lstlisting}
+with the exception of the natural logarithm approximation,
+in which we need to specify a value for x between [0,2]
+\begin{lstlisting}[language=bash]
+	./bin/ln_openmp <x> <steps> <threads_number>
+\end{lstlisting}
+
+\section*{Results}
+It is interesting to note that although all threads on my computer were being utilized, 
+the results were only minimally sped up for different numbers of threads.
+Unfortunately, i can only go up to 4 threads so all tests and comparisons were done using 1,2 and 4 of those threads respectively.
+
+Timing code is included in the source code instead of being used with a unix command, so that users can run their own tests and draw their own conclusions on the matter.
+Alas, sceencaps of timings with different threads/steps combinations are shown bellow.
+% Don't forget to add those!
+\end{document}

@@ -46,5 +46,5 @@ For the MPI implementation of the pi approximation, the method of <b>Monte Carlo
 
 To execute the MPI version of the pi approximation, simply run:
 ```sh
-./run.sh
+./pi_aprox/run.sh
 ```

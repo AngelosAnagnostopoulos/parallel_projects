@@ -24,6 +24,6 @@ int main(int argc, char **argv){
         y = sqrt((long double)1.0 - (pow(x, 2)));
         area += dx * y;
     }
-    printf("Constant π value: %1.10Lf\n", area * 4.0);
+    printf("Constant pi value: %1.10Lf\n", area * 4.0);
     printf("Time taken = %f\n",omp_get_wtime() - time);
 }
